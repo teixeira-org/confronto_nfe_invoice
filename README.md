@@ -1,0 +1,1 @@
+# confronto_nfe_invoice
