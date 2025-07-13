@@ -8,6 +8,7 @@ import io
 import requests
 from datetime import datetime, timedelta
 from utils import parser_xml, parser_invoice, comparador
+import numpy as np
 
 st.title("📦 Confronto de XML da NF-e com Invoice (CI)")
 
@@ -93,6 +94,35 @@ with col2:
 # --- Checkbox Grade ---
 grade_mode = st.checkbox("Usar cálculo por Grade (total pares = quantidade × caixas por tamanho)")
 
+# --- NOVO BLOCO: Conversão de moeda ---
+st.markdown("### 💵 Opções de Conversão de Moeda")
+
+col_a, col_b, col_c, col_d = st.columns([1,1,2,2])
+with col_a:
+    xml_em_dolar = st.checkbox("XML em dólar")
+with col_b:
+    invoice_em_dolar = st.checkbox("Invoice em dólar")
+with col_c:
+    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=False)
+with col_d:
+    cotacao_manual = st.number_input("Cotação manual (opcional)", value=0.0, format="%.4f")
+
+if xml_em_dolar and invoice_em_dolar:
+    st.error("Selecione apenas um dos campos como 'em dólar' para realizar a conversão.")
+    st.stop()
+
+cotacao_dolar = None
+if usar_cotacao_auto or cotacao_manual == 0:
+    cotacao_dolar = cotacoes['ontem']['valor'] if cotacoes else 1.0
+else:
+    cotacao_dolar = cotacao_manual if cotacao_manual > 0 else (cotacoes['ontem']['valor'] if cotacoes else 1.0)
+
+def converter_para_reais(df, campos, cotacao):
+    for campo in campos:
+        if campo in df.columns:
+            df[campo] = np.round(df[campo].astype(float) * cotacao, 2)
+    return df
+
 # --- Processamento após upload ---
 if xml_file and invoice_file:
     st.success("✅ Arquivos carregados com sucesso.")
@@ -110,6 +140,20 @@ if xml_file and invoice_file:
         st.error(f"Erro ao processar Invoice: {resumo_invoice['erro']}")
         st.stop()
 
+    # -- CONVERSÃO DE MOEDA ANTES DO CONFRONTO --
+    campos_monetarios = ["preço unitário", "valor total"]
+
+    if xml_em_dolar:
+        df_xml_conv = converter_para_reais(pd.DataFrame(dados_xml), campos_monetarios, cotacao_dolar)
+        if "valor total xml" in resumo_xml:
+            resumo_xml["valor total xml"] = round(float(resumo_xml["valor total xml"]) * cotacao_dolar, 2)
+        dados_xml = df_xml_conv.to_dict("records")
+    elif invoice_em_dolar:
+        df_invoice_conv = converter_para_reais(pd.DataFrame(dados_invoice), campos_monetarios, cotacao_dolar)
+        if "valor total nota" in resumo_invoice:
+            resumo_invoice["valor total nota"] = round(float(resumo_invoice["valor total nota"]) * cotacao_dolar, 2)
+        dados_invoice = df_invoice_conv.to_dict("records")
+
     # Mostrar resumos
     st.subheader("📑 Resumo do XML")
     st.json(resumo_xml, expanded=False)
@@ -119,7 +163,6 @@ if xml_file and invoice_file:
 
     # Mostrar todos os itens (marca/modelo REMOVIDA do XML)
     st.subheader("🔎 Todos os itens do XML")
-    # Remove a coluna "marca" do XML antes de exibir, se existir
     df_xml_view = pd.DataFrame(dados_xml).copy()
     if "marca" in df_xml_view.columns:
         df_xml_view = df_xml_view.drop(columns=["marca"])
