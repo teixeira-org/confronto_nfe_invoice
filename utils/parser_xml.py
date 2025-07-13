@@ -16,18 +16,22 @@ def processar(xml_file):
             xProd = prod.findtext("ns:xProd", default="", namespaces=ns)
             NCM = prod.findtext("ns:NCM", default="", namespaces=ns)
 
-            # Extrair ref base (apenas letras/números antes do primeiro ponto)
-            ref = None
+            # Robustez: funciona com ou sem "REF" no xProd
+            ref, cor, tamanho = None, None, None
             match_ref = re.search(r'REF\s+([A-Za-z0-9]+)', xProd)
-            if match_ref:
-                ref = match_ref.group(1)
-
-            # Extrair cor e tamanho (antes de REF)
-            cor, tamanho = None, None
             match_cor_tam = re.search(r'\b([A-ZÇÃÕÉÊÍÓÚa-zçãõéêíóú]+)\s+(\d{2})\s+REF', xProd)
-            if match_cor_tam:
+
+            if match_ref and match_cor_tam:
+                ref = match_ref.group(1)
                 cor = match_cor_tam.group(1)
                 tamanho = match_cor_tam.group(2)
+            else:
+                # Novo padrão: ... REF não existe, ex: "25K10301 NATURAL 38"
+                match = re.search(r'([A-Z0-9]+)\s+([A-ZÇÃÕÉÊÍÓÚa-zçãõéêíóú]+)\s+(\d{2})$', xProd)
+                if match:
+                    ref = match.group(1)
+                    cor = match.group(2)
+                    tamanho = match.group(3)
 
             try:
                 qCom = float(str(prod.findtext("ns:qCom", "0", namespaces=ns)).replace(",", "."))

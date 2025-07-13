@@ -25,6 +25,9 @@ def processar(excel_file, usar_grade=False):
         ref = str(row.get("ref", "")).strip()
         ncm = str(row.get("ncm", "")).strip()
         cor = str(row.get("cor", "")).strip()
+        if "-" in cor:
+          cor = cor.split("-", 1)[1].strip()
+
         preco_unit_raw = str(row.get("preco unit", "0")).replace(",", ".").strip()
         preco_unit = float(preco_unit_raw) if preco_unit_raw.replace('.', '', 1).isdigit() else 0.0
         caixas_raw = str(row.get("caixas", "1")).strip()
