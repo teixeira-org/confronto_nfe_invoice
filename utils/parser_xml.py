@@ -1,46 +1,38 @@
 import xml.etree.ElementTree as ET
+import re
 
 def processar(xml_file):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     ns = {"ns": "http://www.portalfiscal.inf.br/nfe"}
-
     itens = []
     total_pares = 0
     total_nota = 0.0
 
     for det in root.findall(".//ns:det", ns):
-        nItem = det.attrib.get("nItem", "")  # captura o atributo nItem
+        nItem = det.attrib.get("nItem", "")
         prod = det.find("ns:prod", ns)
-
         if prod is not None:
-            cProd_completo = prod.findtext("ns:cProd", default="", namespaces=ns)
-            cProd = cProd_completo.split(".")[0]  # simplifica cProd
-            xProd_raw = prod.findtext("ns:xProd", default="", namespaces=ns)
+            xProd = prod.findtext("ns:xProd", default="", namespaces=ns)
             NCM = prod.findtext("ns:NCM", default="", namespaces=ns)
-            CFOP = prod.findtext("ns:CFOP", default="", namespaces=ns)
-            uCom = prod.findtext("ns:uCom", default="", namespaces=ns)
-            qCom = prod.findtext("ns:qCom", default="0", namespaces=ns)
-            vUnCom = prod.findtext("ns:vUnCom", default="0", namespaces=ns)
-            vProd = prod.findtext("ns:vProd", default="0", namespaces=ns)
-            nItemPed = prod.findtext("ns:nItemPed", default="", namespaces=ns)
 
-            # Reconstrução para comparação: REF - COR - TAM
-            xProd_partes = xProd_raw.split("MOD")[-1].strip().split()
-            if len(xProd_partes) >= 3:
-                ref = xProd_partes[0]
-                cor = xProd_partes[1]
-                numero = xProd_partes[2]
-                xProd_match = f"{ref} - {cor} - {numero}"
-            else:
-                xProd_match = xProd_raw.strip()
+            # Extrair ref base (apenas letras/números antes do primeiro ponto)
+            ref = None
+            match_ref = re.search(r'REF\s+([A-Za-z0-9]+)', xProd)
+            if match_ref:
+                ref = match_ref.group(1)
 
-            xProd = xProd_raw.strip()  # exibe nome completo original
+            # Extrair cor e tamanho (antes de REF)
+            cor, tamanho = None, None
+            match_cor_tam = re.search(r'\b([A-ZÇÃÕÉÊÍÓÚa-zçãõéêíóú]+)\s+(\d{2})\s+REF', xProd)
+            if match_cor_tam:
+                cor = match_cor_tam.group(1)
+                tamanho = match_cor_tam.group(2)
 
             try:
-                qCom = float(str(qCom).replace(",", "."))
-                vUnCom = float(str(vUnCom).replace(",", "."))
-                vProd = float(str(vProd).replace(",", "."))
+                qCom = float(str(prod.findtext("ns:qCom", "0", namespaces=ns)).replace(",", "."))
+                vUnCom = float(str(prod.findtext("ns:vUnCom", "0", namespaces=ns)).replace(",", "."))
+                vProd = float(str(prod.findtext("ns:vProd", "0", namespaces=ns)).replace(",", "."))
             except:
                 qCom = vUnCom = vProd = 0.0
 
@@ -48,17 +40,14 @@ def processar(xml_file):
             total_nota += vProd
 
             itens.append({
-                "nItem": int(nItem) if nItem.isdigit() else None,
-                "ref_xml": cProd,  # <- alterado aqui
-                "xProd": xProd,  # exibição
-                "xProd_match": xProd_match,  # comparação
+                "item": nItem,
+                "ref": ref,
                 "ncm": NCM,
-                "cfop": CFOP,
-                "unidade": uCom,
+                "cor": cor,
+                "tamanho": tamanho,
                 "total pares": qCom,
-                "unit price": vUnCom,
+                "preço unitário": vUnCom,
                 "valor total": vProd,
-                "item pedido": nItemPed
             })
 
     resumo = {
@@ -66,5 +55,4 @@ def processar(xml_file):
         "total pares": total_pares,
         "valor total xml": round(total_nota, 2)
     }
-
     return itens, resumo

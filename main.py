@@ -16,7 +16,6 @@ def get_cotacao_usd():
     try:
         hoje = datetime.now()
         ontem = hoje - timedelta(days=1)
-        # Busca as duas últimas cotações (hoje e ontem)
         url = "https://economia.awesomeapi.com.br/json/daily/USD-BRL/2"
         r = requests.get(url, timeout=10)
         r.raise_for_status()
@@ -69,10 +68,7 @@ else:
 # --- Upload dos arquivos ---
 st.header("📁 Upload de Arquivos")
 
-# Caminho correto do modelo na pasta utils
 modelo_path = os.path.join("utils", "modelo_invoice.xlsx")
-
-# Botão de download do modelo
 with st.expander("📥 Baixar modelo da planilha Invoice"):
     try:
         with open(modelo_path, "rb") as f:
@@ -121,12 +117,16 @@ if xml_file and invoice_file:
     st.subheader("📑 Resumo da Invoice (CI)")
     st.json(resumo_invoice, expanded=False)
 
-    # Mostrar todos os itens
+    # Mostrar todos os itens (marca/modelo REMOVIDA do XML)
     st.subheader("🔎 Todos os itens do XML")
-    st.dataframe(dados_xml, use_container_width=True)
+    # Remove a coluna "marca" do XML antes de exibir, se existir
+    df_xml_view = pd.DataFrame(dados_xml).copy()
+    if "marca" in df_xml_view.columns:
+        df_xml_view = df_xml_view.drop(columns=["marca"])
+    st.dataframe(df_xml_view, use_container_width=True)
 
     st.subheader("🔎 Todos os itens da Invoice")
-    st.dataframe(dados_invoice, use_container_width=True)
+    st.dataframe(pd.DataFrame(dados_invoice), use_container_width=True)
 
     # Confronto
     if st.button("🚨 Confrontar XML x Invoice"):
@@ -140,17 +140,12 @@ if xml_file and invoice_file:
         resultado = st.session_state["resultado"]
 
         st.subheader("📊 Resultado do Confronto")
-        if "nItem" in resultado.columns:
-            resultado_ordenado = resultado.sort_values("nItem").set_index("nItem")
-        else:
-            resultado_ordenado = resultado
-
-        st.dataframe(resultado_ordenado, use_container_width=True)
+        st.dataframe(resultado, use_container_width=True)
 
         # --- RESUMO DE ERROS ---
         erros = resultado[
             (resultado["verificação total pares"] != "✅ OK") |
-            (resultado["verificação unit price"] != "✅ OK") |
+            (resultado["verificação preço unitário"] != "✅ OK") |
             (resultado["verificação valor total"] != "✅ OK")
         ]
         st.session_state["erros"] = erros
@@ -168,24 +163,12 @@ if xml_file and invoice_file:
 
         if st.session_state.get("mostrar_erros", False):
             st.subheader("🧯 Itens com Divergência")
-            if "nItem" in erros.columns:
-                erros_ordenado = erros.sort_values("nItem").set_index("nItem")
-            else:
-                erros_ordenado = erros
-            st.dataframe(erros_ordenado, use_container_width=True)
+            st.dataframe(erros, use_container_width=True)
 
         if not erros.empty:
-            # Garante que nItem apareça como primeira coluna no Excel
-            if "nItem" in erros.columns:
-                colunas = ["nItem"] + [col for col in erros.columns if col != "nItem"]
-                erros_export = erros[colunas]
-            else:
-                erros_export = erros.copy()
-
             buffer = io.BytesIO()
-            erros_export.to_excel(buffer, index=False)
+            erros.to_excel(buffer, index=False)
             buffer.seek(0)
-
             st.download_button(
                 label="📥 Baixar Erros em Excel",
                 data=buffer,
@@ -193,7 +176,6 @@ if xml_file and invoice_file:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-    # --- BOTÃO DE RESET PARA NOVA CONFRONTAÇÃO ---
     st.markdown("---")
     if st.button("🔄 Iniciar Nova Confrontação"):
         st.session_state.clear()

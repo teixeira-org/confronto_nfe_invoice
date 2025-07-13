@@ -7,12 +7,11 @@ def processar(excel_file, usar_grade=False):
         return [], {"erro": f"Erro ao ler a aba 'CI': {str(e)}"}
 
     # Padronizar nomes das colunas
-    df.columns = [int(col) if str(col).isdigit() else str(col).strip().lower() for col in df.columns]
+    df.columns = [str(col).strip().lower() for col in df.columns]
 
-    # Colunas obrigatórias
+    tamanhos = [str(i) for i in range(20, 46)]  # 20 até 45
+
     colunas_fixas = ["item", "marca", "ref", "ncm", "cor", "caixas", "total pares", "preco unit", "valor total"]
-    tamanhos = list(range(20, 46))
-
     for col in colunas_fixas + tamanhos:
         if col not in df.columns:
             return [], {"erro": f"Coluna obrigatória ausente: {col}"}
@@ -22,51 +21,36 @@ def processar(excel_file, usar_grade=False):
     total_nota = 0.0
 
     for _, row in df.iterrows():
+        marca = str(row.get("marca", "")).strip()
         ref = str(row.get("ref", "")).strip()
-        cor = str(row.get("cor", "")).strip()
         ncm = str(row.get("ncm", "")).strip()
-
-        preco_unit_raw = str(row.get("preco unit", "0")).strip()
-        preco_unit_str = preco_unit_raw.replace(",", ".")
-        try:
-            preco_unit_float = float(preco_unit_str)
-        except:
-            preco_unit_float = 0.0
-
+        cor = str(row.get("cor", "")).strip()
+        preco_unit_raw = str(row.get("preco unit", "0")).replace(",", ".").strip()
+        preco_unit = float(preco_unit_raw) if preco_unit_raw.replace('.', '', 1).isdigit() else 0.0
         caixas_raw = str(row.get("caixas", "1")).strip()
-        caixas = int(caixas_raw) if caixas_raw.isdigit() else 1  # padrão 1
-
-        total_item = 0.0
+        caixas = int(caixas_raw) if caixas_raw.isdigit() else 1
 
         for tamanho in tamanhos:
             qtd_str = str(row.get(tamanho, "0")).strip()
             qtd = int(qtd_str) if qtd_str.isdigit() else 0
-
             if qtd > 0:
                 if usar_grade:
                     quantidade_final = qtd * caixas
                 else:
                     quantidade_final = qtd
-
-                valor_total = round(preco_unit_float * quantidade_final, 2)
-
+                valor_total = round(preco_unit * quantidade_final, 2)
                 itens.append({
                     "ref": ref,
-                    "cor": cor,
-                    "tamanho": str(tamanho),
                     "ncm": ncm,
-                    "quantidade": quantidade_final,
-                    "preco_unit": preco_unit_float,
-                    "valor_total": valor_total,
-                    "xProd": f"{ref} - {cor} - {tamanho}",
-                    "xProd_match": f"{ref} - {cor} - {tamanho}",
+                    "cor": cor,
+                    "tamanho": tamanho,
                     "total pares": quantidade_final,
-                    "unit price": preco_unit_float,  # manter por compatibilidade
+                    "preço unitário": preco_unit,
                     "valor total": valor_total,
                 })
+
                 total_pares += quantidade_final
-                total_item += valor_total
-        total_nota += total_item
+                total_nota += valor_total
 
     return itens, {
         "total pares": total_pares,
