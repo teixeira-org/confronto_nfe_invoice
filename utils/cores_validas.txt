@@ -1,0 +1,209 @@
+preto
+branco
+vermelho
+azul
+verde
+amarelo
+laranja
+roxo
+rosa
+marrom
+cinza
+grafite
+prata
+dourado
+bege
+bordo
+marinho
+oliva
+caramelo
+cafe
+camel
+nude
+areia
+ouro
+cobre
+off white
+lilas
+lavanda
+turquesa
+mostarda
+salmao
+musgo
+chumbo
+vinho
+pink
+fucsia
+anis
+camurca
+taupe
+petroleo
+limao
+caqui
+mint
+menta
+pastel
+castanho
+cobreado
+ouro velho
+palha
+coral
+fendi
+cinza escuro
+cinza claro
+branco gelo
+natural
+avela
+terracota
+verde agua
+azul claro
+azul escuro
+amendoa
+jeans
+azul jeans
+lavanda
+azul marinho
+azul piscina
+siena
+pessego
+framboesa
+esmeralda
+ametista
+turmalina
+jade
+malva
+malva escuro
+marrom escuro
+marrom claro
+lapis
+oceano
+ceramica
+marfim
+neve
+safira
+azul royal
+royal
+ocre
+tijolo
+champagne
+mel
+bronze
+topazio
+quartzo
+quartzo rosa
+verde bandeira
+verde limao
+neon
+verde floresta
+verde grama
+verde escuro
+verde claro
+verde alface
+lilas claro
+lilas escuro
+berinjela
+mocassim
+zircônia
+grafite escuro
+grafite claro
+marinho claro
+marinho escuro
+abobora
+azul abismo
+blue
+black
+sand
+silver
+gold
+sun
+ivory
+espresso
+wine
+cream
+coffee
+peach
+apricot
+ice
+deep blue
+cobalto
+titanio
+aurora
+rubra
+preto fosil
+branco fosil
+preto fosco
+branco fosco
+bege fosco
+mostarda fosco
+pink neon
+roho neon
+lilas neon
+azul neon
+verde neon
+laranja neon
+amarelo neon
+limao neon
+carvao
+perola
+glitter
+metalizado
+verniz
+pelucia
+animal print
+onca
+zebra
+leopardo
+tigre
+cobra
+python
+crocodilo
+lagarto
+jacare
+estampa
+xadrez
+xadrez vichy
+xadrez escoces
+xadrez classico
+xadrez pied de poule
+xadrez principe
+xadrez gales
+xadrez madras
+xadrez windowpane
+xadrez houndstooth
+poa
+bolinha
+floral
+animal
+paisley
+militar
+camuflado
+militar verde
+militar bege
+militar cinza
+marrom militar
+camuflagem
+rosa antigo
+rosa bebe
+rosa pastel
+rosa choque
+cinza azulado
+azul cinza
+marrom tabaco
+tabaco
+cappuccino
+nutella
+canela
+trigo
+acqua blue
+carmesim
+escarlate
+bordo
+granada
+mostarda amarela
+petroleo azul
+mango
+havana
+kiwi
+aloe
+azul sky
+tiffany

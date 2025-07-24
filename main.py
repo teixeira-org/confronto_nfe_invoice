@@ -17,7 +17,7 @@ def get_cotacao_usd():
     try:
         hoje = datetime.now()
         ontem = hoje - timedelta(days=1)
-        url = "https://economia.awesomeapi.com.br/json/daily/USD-BRL/2"
+        url = "https://economia.awesomeapi.com.br/json/daily/USD-BRL/2?token=adb4edebe93c6f4d1f9aac72f00a76b3a4ada0480ce57cef2553db0078e8d3e8"
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         cotacoes = r.json()
@@ -94,7 +94,7 @@ with col2:
 # --- Checkbox Grade ---
 grade_mode = st.checkbox("Usar cálculo por Grade (total pares = quantidade × caixas por tamanho)")
 
-# --- NOVO BLOCO: Conversão de moeda ---
+# --- NOVO BLOCO: Conversão de Moeda ---
 st.markdown("### 💵 Opções de Conversão de Moeda")
 
 col_a, col_b, col_c, col_d = st.columns([1,1,2,2])
@@ -103,7 +103,7 @@ with col_a:
 with col_b:
     invoice_em_dolar = st.checkbox("Invoice em dólar")
 with col_c:
-    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=False)
+    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=True)
 with col_d:
     cotacao_manual = st.number_input("Cotação manual (opcional)", value=0.0, format="%.4f")
 
@@ -161,14 +161,11 @@ if xml_file and invoice_file:
     st.subheader("📑 Resumo da Invoice (CI)")
     st.json(resumo_invoice, expanded=False)
 
-    # Mostrar todos os itens (marca/modelo REMOVIDA do XML)
-    st.subheader("🔎 Todos os itens do XML")
-    df_xml_view = pd.DataFrame(dados_xml).copy()
-    if "marca" in df_xml_view.columns:
-        df_xml_view = df_xml_view.drop(columns=["marca"])
-    st.dataframe(df_xml_view, use_container_width=True)
+    # Mostrar agrupamento dos itens do XML e da Invoice
+    st.subheader("🔎 Itens Agrupados do XML")
+    st.dataframe(pd.DataFrame(dados_xml), use_container_width=True)
 
-    st.subheader("🔎 Todos os itens da Invoice")
+    st.subheader("🔎 Itens Agrupados da Invoice")
     st.dataframe(pd.DataFrame(dados_invoice), use_container_width=True)
 
     # Confronto
@@ -182,14 +179,15 @@ if xml_file and invoice_file:
     if "resultado" in st.session_state:
         resultado = st.session_state["resultado"]
 
-        st.subheader("📊 Resultado do Confronto")
+        st.subheader("📊 Resultado do Confronto (Agrupado)")
         st.dataframe(resultado, use_container_width=True)
 
         # --- RESUMO DE ERROS ---
         erros = resultado[
             (resultado["verificação total pares"] != "✅ OK") |
             (resultado["verificação preço unitário"] != "✅ OK") |
-            (resultado["verificação valor total"] != "✅ OK")
+            (resultado["verificação total pares"] == "Ausente") |
+            (resultado["verificação preço unitário"] == "Ausente")
         ]
         st.session_state["erros"] = erros
         qtd_erros = len(erros)

@@ -1,92 +1,121 @@
 import pandas as pd
 import unicodedata
+import re
+import os
 
 def normalizar(texto):
-    """Remove acentos e normaliza texto para comparação (case-insensitive)."""
-    if isinstance(texto, str):
-        return unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('utf-8').strip().lower()
-    return texto
+    if not isinstance(texto, str):
+        return ""
+    texto = texto.lower()
+    texto = unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("utf-8")
+    texto = re.sub(r"[-/]", " ", texto)
+    texto = re.sub(r"[^a-z0-9 ]", "", texto)
+    texto = re.sub(r"\s+", " ", texto)
+    return texto.strip()
 
-def buscar_item(row_invoice, df_xml):
-    """Busca exata usando ref, ncm, cor, tamanho (SEM marca)."""
-    for idx, row_xml in df_xml.iterrows():
-        if (
-            normalizar(row_invoice.get("ref", "")) == normalizar(row_xml.get("ref", "")) and
-            normalizar(row_invoice.get("ncm", "")) == normalizar(row_xml.get("ncm", "")) and
-            normalizar(row_invoice.get("cor", "")) == normalizar(row_xml.get("cor", "")) and
-            normalizar(str(row_invoice.get("tamanho", ""))) == normalizar(str(row_xml.get("tamanho", "")))
-        ):
-            return idx
-    return None
+def carregar_cores_validas(caminho="utils/cores_validas.txt"):
+    with open(caminho, "r", encoding="utf-8") as f:
+        return set(linha.strip() for linha in f if linha.strip())
+
+CORES_VALIDAS = carregar_cores_validas(os.path.join(os.path.dirname(__file__), "cores_validas.txt"))
+
+def detectar_cores_na_string(cor_normalizada, CORES_VALIDAS):
+    cores_encontradas = []
+    for cor in CORES_VALIDAS:
+        if cor in cor_normalizada:
+            cores_encontradas.append(cor)
+    cores_encontradas = sorted(cores_encontradas, key=lambda x: cor_normalizada.find(x))
+    return " ".join(cores_encontradas)
+
+def agrupar_itens(df, lado="xml"):
+    """Agrupa por ref, ncm, cor, tamanho e, se for do XML, mantém o item/nItem para rastreio."""
+    if df.empty:
+        return df
+    agrupa = ["ref", "ncm", "cor", "tamanho"]
+    if lado == "xml" and "item" in df.columns:
+        df["item"] = df["item"].astype(str)
+        agrupado = df.groupby(agrupa, as_index=False).agg({
+            "item": "first",
+            "total pares": "sum",
+            "preço unitário": "mean",
+            "valor total": "sum",
+        })
+    else:
+        agrupado = df.groupby(agrupa, as_index=False).agg({
+            "total pares": "sum",
+            "preço unitário": "mean",
+            "valor total": "sum",
+        })
+    return agrupado
+
+def preparar_df(itens, lado="xml"):
+    df = pd.DataFrame(itens)
+    for col in ["ref", "ncm", "cor", "tamanho"]:
+        if col in df.columns:
+            df[col] = df[col].apply(normalizar)
+            if col == "cor":
+                df[col] = df[col].apply(lambda c: detectar_cores_na_string(c, CORES_VALIDAS) or c)
+        else:
+            df[col] = ""
+    return agrupar_itens(df, lado=lado)
 
 def confrontar(itens_xml, itens_invoice):
-    if not itens_xml or not itens_invoice:
-        return pd.DataFrame([{"Erro": "Itens vazios em um dos arquivos"}])
+    df_xml = preparar_df(itens_xml, lado="xml")
+    df_invoice = preparar_df(itens_invoice, lado="invoice")
 
-    df_xml = pd.DataFrame(itens_xml)
-    df_invoice = pd.DataFrame(itens_invoice)
+    merge_cols = ["ref", "ncm", "cor", "tamanho"]
+    df_merge = pd.merge(
+        df_xml, df_invoice,
+        on=merge_cols,
+        how="outer",
+        suffixes=('_xml', '_invoice'),
+        indicator=True
+    )
 
-    # Realiza o match dos itens
-    xml_idxs = []
-    for _, row_inv in df_invoice.iterrows():
-        idx_xml = buscar_item(row_inv, df_xml)
-        xml_idxs.append(idx_xml)
+    if "item" not in df_merge.columns:
+        df_merge["item"] = ""
 
-    df_invoice["idx_xml"] = xml_idxs
-
-    linhas = []
-    for idx in df_invoice["idx_xml"]:
-        if pd.notnull(idx) and idx in df_xml.index:
-            linha = df_xml.loc[idx].add_suffix("_xml")
-            linhas.append(linha)
-        else:
-            vazio = pd.Series({col + "_xml": None for col in df_xml.columns})
-            linhas.append(vazio)
-    dados_xml_matched = pd.DataFrame(linhas).reset_index(drop=True)
-
-    df_merged = pd.concat([df_invoice.reset_index(drop=True), dados_xml_matched], axis=1)
-
-    # Checagem dos campos - NOMES EXATOS
-    campos_para_verificar = [
-        ("total pares", "total pares_xml"),
-        ("preço unitário", "preço unitário_xml"),
-        ("valor total", "valor total_xml"),
-        ("ncm", "ncm_xml"),
-    ]
-
-    def verificar_diferenca(linha, campo_invoice, campo_xml):
-        val_inv = linha.get(campo_invoice)
-        val_xml = linha.get(campo_xml)
-        if pd.isnull(val_inv) or pd.isnull(val_xml):
-            return "⚠️ Ausente"
+    def verif(val_xml, val_inv):
+        if pd.isnull(val_xml) and not pd.isnull(val_inv):
+            return "Ausente"
+        if pd.isnull(val_inv) and not pd.isnull(val_xml):
+            return "Ausente"
         try:
-            if round(float(val_inv), 2) != round(float(val_xml), 2):
-                return f"❌ {val_inv} ≠ {val_xml}"
-            else:
-                return "✅ OK"
+            return "✅ OK" if round(float(val_xml), 2) == round(float(val_inv), 2) else f"❌ {val_xml} ≠ {val_inv}"
         except:
-            if str(val_inv).strip() != str(val_xml).strip():
-                return f"❌ {val_inv} ≠ {val_xml}"
-            else:
-                return "✅ OK"
+            return f"❌ {val_xml} ≠ {val_inv}"
 
-    # Geração das colunas de verificação
-    for campo_inv, campo_xml in campos_para_verificar:
-        col_name = f"verificação {campo_inv}"
-        if campo_inv in df_merged.columns and campo_xml in df_merged.columns:
-            df_merged[col_name] = df_merged.apply(
-                lambda row: verificar_diferenca(row, campo_inv, campo_xml), axis=1
-            )
-        else:
-            df_merged[col_name] = "⚠️ Coluna ausente"
+    df_merge["verificação total pares"] = df_merge.apply(
+        lambda row: verif(row.get("total pares_xml"), row.get("total pares_invoice")), axis=1)
+    df_merge["verificação preço unitário"] = df_merge.apply(
+        lambda row: verif(row.get("preço unitário_xml"), row.get("preço unitário_invoice")), axis=1)
+    df_merge["verificação valor total"] = df_merge.apply(
+        lambda row: verif(row.get("valor total_xml"), row.get("valor total_invoice")), axis=1)
 
-    # Seleção das colunas finais — todos os nomes alinhados
+    df_merge = df_merge.rename(columns={
+        "ref_xml": "ref xml", "ref_invoice": "ref invoice",
+        "ncm_xml": "ncm xml", "ncm_invoice": "ncm invoice",
+        "cor_xml": "cor xml", "cor_invoice": "cor invoice",
+        "total pares_xml": "total pares xml", "total pares_invoice": "total pares invoice",
+        "preço unitário_xml": "preço unitário xml", "preço unitário_invoice": "preço unitário invoice",
+        "valor total_xml": "valor total xml", "valor total_invoice": "valor total invoice",
+        "item": "item"
+    })
+
     colunas_final = [
-        "item", "ref", "ncm", "cor", "tamanho", "total pares", "preço unitário", "valor total",
-        "total pares_xml", "preço unitário_xml", "valor total_xml", "ncm_xml",
-        "verificação total pares", "verificação preço unitário", "verificação valor total", "verificação ncm",
+        "item", "ref xml", "ref invoice", "ncm xml", "ncm invoice", "cor xml", "cor invoice",
+        "tamanho", "total pares xml", "total pares invoice",
+        "preço unitário xml", "preço unitário invoice",
+        "valor total xml", "valor total invoice",
+        "verificação total pares", "verificação preço unitário", "verificação valor total"
     ]
-    colunas_final = [col for col in colunas_final if col in df_merged.columns]
+    colunas_final = [c for c in colunas_final if c in df_merge.columns]
 
-    return df_merged[colunas_final].copy()
+    try:
+        df_merge["item_ord"] = df_merge["item"].astype(int)
+        df_merge = df_merge.sort_values("item_ord")
+        df_merge = df_merge.drop(columns=["item_ord"])
+    except Exception:
+        pass
 
+    return df_merge[colunas_final].copy()
