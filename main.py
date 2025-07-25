@@ -17,7 +17,7 @@ def get_cotacao_usd():
     try:
         hoje = datetime.now()
         ontem = hoje - timedelta(days=1)
-        url = "https://economia.awesomeapi.com.br/json/daily/USD-BRL/2?token=adb4edebe93c6f4d1f9aac72f00a76b3a4ada0480ce57cef2553db0078e8d3e8"
+        url = "https://economia.awesomeapi.com.br/json/daily/USD-BRL/2"
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         cotacoes = r.json()
@@ -103,7 +103,7 @@ with col_a:
 with col_b:
     invoice_em_dolar = st.checkbox("Invoice em dólar")
 with col_c:
-    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=True)
+    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=False)
 with col_d:
     cotacao_manual = st.number_input("Cotação manual (opcional)", value=0.0, format="%.4f")
 
@@ -117,11 +117,16 @@ if usar_cotacao_auto or cotacao_manual == 0:
 else:
     cotacao_dolar = cotacao_manual if cotacao_manual > 0 else (cotacoes['ontem']['valor'] if cotacoes else 1.0)
 
-def converter_para_reais(df, campos, cotacao):
-    for campo in campos:
-        if campo in df.columns:
-            df[campo] = np.round(df[campo].astype(float) * cotacao, 2)
-    return df
+def converter_para_reais(itens, campos, cotacao):
+    for item in itens:
+        for campo in campos:
+            if campo in item:
+                try:
+                    valor = float(str(item[campo]).replace(",", "."))
+                    item[campo] = f"{valor * cotacao:.10f}".rstrip("0").rstrip(".")
+                except Exception:
+                    pass
+    return itens
 
 # --- Processamento após upload ---
 if xml_file and invoice_file:
@@ -141,18 +146,17 @@ if xml_file and invoice_file:
         st.stop()
 
     # -- CONVERSÃO DE MOEDA ANTES DO CONFRONTO --
-    campos_monetarios = ["preço unitário", "valor total"]
+    campos_monetarios_xml = ["preco unit xml", "valor total xml"]
+    campos_monetarios_invoice = ["preco unit invoice", "valor total invoice"]
 
     if xml_em_dolar:
-        df_xml_conv = converter_para_reais(pd.DataFrame(dados_xml), campos_monetarios, cotacao_dolar)
+        dados_xml = converter_para_reais(dados_xml, campos_monetarios_xml, cotacao_dolar)
         if "valor total xml" in resumo_xml:
-            resumo_xml["valor total xml"] = round(float(resumo_xml["valor total xml"]) * cotacao_dolar, 2)
-        dados_xml = df_xml_conv.to_dict("records")
-    elif invoice_em_dolar:
-        df_invoice_conv = converter_para_reais(pd.DataFrame(dados_invoice), campos_monetarios, cotacao_dolar)
+            resumo_xml["valor total xml"] = round(float(resumo_xml["valor total xml"]) * cotacao_dolar, 10)
+    if invoice_em_dolar:
+        dados_invoice = converter_para_reais(dados_invoice, campos_monetarios_invoice, cotacao_dolar)
         if "valor total nota" in resumo_invoice:
-            resumo_invoice["valor total nota"] = round(float(resumo_invoice["valor total nota"]) * cotacao_dolar, 2)
-        dados_invoice = df_invoice_conv.to_dict("records")
+            resumo_invoice["valor total nota"] = round(float(resumo_invoice["valor total nota"]) * cotacao_dolar, 10)
 
     # Mostrar resumos
     st.subheader("📑 Resumo do XML")
@@ -162,10 +166,10 @@ if xml_file and invoice_file:
     st.json(resumo_invoice, expanded=False)
 
     # Mostrar agrupamento dos itens do XML e da Invoice
-    st.subheader("🔎 Itens Agrupados do XML")
+    st.subheader("🔎 Itens do XML (após conversão, se houver)")
     st.dataframe(pd.DataFrame(dados_xml), use_container_width=True)
 
-    st.subheader("🔎 Itens Agrupados da Invoice")
+    st.subheader("🔎 Itens da Invoice (após conversão, se houver)")
     st.dataframe(pd.DataFrame(dados_invoice), use_container_width=True)
 
     # Confronto
@@ -184,10 +188,12 @@ if xml_file and invoice_file:
 
         # --- RESUMO DE ERROS ---
         erros = resultado[
+            (resultado["verificação ref"] != "✅ OK") |
+            (resultado["verificação ncm"] != "✅ OK") |
+            (resultado["verificação cor"] != "✅ OK") |
             (resultado["verificação total pares"] != "✅ OK") |
-            (resultado["verificação preço unitário"] != "✅ OK") |
-            (resultado["verificação total pares"] == "Ausente") |
-            (resultado["verificação preço unitário"] == "Ausente")
+            (resultado["verificação preco unit"] != "✅ OK") |
+            (resultado["verificação valor total"] != "✅ OK")
         ]
         st.session_state["erros"] = erros
         qtd_erros = len(erros)

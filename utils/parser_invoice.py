@@ -2,16 +2,16 @@ import pandas as pd
 import unicodedata
 import re
 import os
+from decimal import Decimal
 
 def normalizar(texto):
-    """Remove acentos, caracteres especiais e normaliza texto para comparação."""
     if not isinstance(texto, str):
         return ""
     texto = texto.lower()
     texto = unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("utf-8")
-    texto = re.sub(r"[-/]", " ", texto)  # transforma hífen e barra em espaço
-    texto = re.sub(r"[^a-z0-9 ]", "", texto)  # remove tudo exceto letras, números e espaço
-    texto = re.sub(r"\s+", " ", texto)  # reduz espaços múltiplos
+    texto = re.sub(r"[-/,]", " ", texto)
+    texto = re.sub(r"[^a-z0-9 ]", "", texto)
+    texto = re.sub(r"\s+", " ", texto)
     return texto.strip()
 
 def carregar_cores_validas(caminho="utils/cores_validas.txt"):
@@ -20,14 +20,22 @@ def carregar_cores_validas(caminho="utils/cores_validas.txt"):
 
 CORES_VALIDAS = carregar_cores_validas(os.path.join(os.path.dirname(__file__), "cores_validas.txt"))
 
-def detectar_cores_na_string(cor_normalizada, CORES_VALIDAS):
-    """Retorna todas as cores presentes na string normalizada, na ordem que aparecem no texto."""
+def detectar_cores_na_string(texto, CORES_VALIDAS):
+    texto_norm = normalizar(texto)
+    cores_ordenadas = sorted(CORES_VALIDAS, key=lambda x: -len(x))
     cores_encontradas = []
-    for cor in CORES_VALIDAS:
-        if cor in cor_normalizada:
+    texto_work = f" {texto_norm} "
+    for cor in cores_ordenadas:
+        cor_espaco = f" {cor} "
+        if cor_espaco in texto_work:
             cores_encontradas.append(cor)
-    cores_encontradas = sorted(cores_encontradas, key=lambda x: cor_normalizada.find(x))
+            texto_work = texto_work.replace(cor_espaco, " ")
     return " ".join(cores_encontradas)
+
+def extrair_ref_invoice(ref_invoice):
+    ref_completa = ref_invoice
+    ref_base = ref_invoice.split(".", 1)[0] if "." in ref_invoice else ref_invoice
+    return ref_completa, ref_base
 
 def processar(excel_file, usar_grade=False):
     try:
@@ -44,18 +52,21 @@ def processar(excel_file, usar_grade=False):
             return [], {"erro": f"Coluna obrigatória ausente: {col}"}
 
     itens = []
-    total_pares = 0
-    total_nota = 0.0
+    total_pares = Decimal("0.0")
+    total_nota = Decimal("0.0")
 
     for _, row in df.iterrows():
-        ref = normalizar(str(row.get("ref", "")))
-        ncm = normalizar(str(row.get("ncm", "")))
-        cor_raw = str(row.get("cor", ""))
-        cor_norm = normalizar(cor_raw)
-        cor_oficial = detectar_cores_na_string(cor_norm, CORES_VALIDAS)
-        cor = cor_oficial or cor_norm
+        ref_raw = str(row.get("ref", ""))
+        ref_completa, ref_base = extrair_ref_invoice(ref_raw)
+        ncm = str(row.get("ncm", ""))
+        marca = str(row.get("marca", ""))
+        cor_original = str(row.get("cor", ""))
+        cor_base = detectar_cores_na_string(cor_original, CORES_VALIDAS)
         preco_unit_raw = str(row.get("preco unit", "0")).replace(",", ".").strip()
-        preco_unit = float(preco_unit_raw) if preco_unit_raw.replace('.', '', 1).isdigit() else 0.0
+        try:
+            preco_unit = Decimal(preco_unit_raw)
+        except Exception:
+            preco_unit = Decimal("0.0")
         caixas_raw = str(row.get("caixas", "1")).strip()
         caixas = int(caixas_raw) if caixas_raw.isdigit() else 1
 
@@ -63,25 +74,41 @@ def processar(excel_file, usar_grade=False):
             qtd_str = str(row.get(tamanho, "0")).strip()
             qtd = int(qtd_str) if qtd_str.isdigit() else 0
             if qtd > 0:
-                if usar_grade:
-                    quantidade_final = qtd * caixas
-                else:
-                    quantidade_final = qtd
-                valor_total = round(preco_unit * quantidade_final, 2)
+                quantidade_final = qtd * caixas if usar_grade else qtd
+                valor_total = preco_unit * Decimal(quantidade_final)
                 itens.append({
-                    "ref": ref,
-                    "ncm": ncm,
-                    "cor": cor,
-                    "tamanho": normalizar(tamanho),
-                    "total pares": quantidade_final,
-                    "preço unitário": preco_unit,
-                    "valor total": valor_total,
+                    "marca": marca,
+                    "ref invoice (completa)": ref_completa,        # exibição
+                    "ref invoice (base)": ref_base,                # para match
+                    "ncm invoice": ncm,
+                    "cor invoice (original)": cor_original,        # exibição
+                    "cor invoice (base)": cor_base,                # para match
+                    "tamanho": tamanho,
+                    "total pares invoice": float(quantidade_final),
+                    "preco unit invoice": f"{preco_unit:.10f}".rstrip("0").rstrip("."),
+                    "valor total invoice": float(valor_total),
                 })
-                total_pares += quantidade_final
+                total_pares += Decimal(str(quantidade_final))
                 total_nota += valor_total
 
+    # --- Agrupamento correto ---
+    df_itens = pd.DataFrame(itens)
+    if not df_itens.empty:
+        campos_agrupamento = ["marca", "ref invoice (base)", "ncm invoice", "cor invoice (base)", "tamanho"]
+        campos_soma = ["total pares invoice", "valor total invoice"]
+        campos_primeiro = ["ref invoice (completa)", "cor invoice (original)", "preco unit invoice"]
+        agg_dict = {col: "first" for col in campos_primeiro}
+        agg_dict.update({col: "sum" for col in campos_soma})
+        grouped = df_itens.groupby(campos_agrupamento, as_index=False).agg(agg_dict)
+        # Formatar soma como string com até 10 casas decimais
+        for col in campos_soma:
+            grouped[col] = grouped[col].apply(lambda v: f"{v:.10f}".rstrip("0").rstrip("."))
+        #print("Agrupamento da Invoice (debug):")
+        #print(grouped)
+        itens = grouped.to_dict("records")
+
     return itens, {
-        "total pares": total_pares,
-        "valor total nota": round(total_nota, 2),
+        "total pares": float(total_pares),
+        "valor total nota": float(total_nota),
         "usou_grade": usar_grade
     }

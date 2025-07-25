@@ -1,209 +1,223 @@
-preto
-branco
-vermelho
-azul
-verde
-amarelo
-laranja
-roxo
-rosa
-marrom
-cinza
-grafite
-prata
-dourado
-bege
-bordo
-marinho
-oliva
-caramelo
-cafe
-camel
-nude
-areia
-ouro
-cobre
-off white
-lilas
-lavanda
-turquesa
-mostarda
-salmao
-musgo
-chumbo
-vinho
-pink
-fucsia
-anis
-camurca
-taupe
-petroleo
-limao
-caqui
-mint
-menta
-pastel
-castanho
-cobreado
-ouro velho
-palha
-coral
-fendi
-cinza escuro
-cinza claro
-branco gelo
-natural
-avela
-terracota
-verde agua
-azul claro
-azul escuro
-amendoa
-jeans
-azul jeans
-lavanda
-azul marinho
-azul piscina
-siena
-pessego
-framboesa
-esmeralda
-ametista
-turmalina
-jade
-malva
-malva escuro
-marrom escuro
-marrom claro
-lapis
-oceano
-ceramica
-marfim
-neve
-safira
-azul royal
-royal
-ocre
-tijolo
-champagne
-mel
-bronze
-topazio
-quartzo
-quartzo rosa
-verde bandeira
-verde limao
-neon
-verde floresta
-verde grama
-verde escuro
-verde claro
-verde alface
-lilas claro
-lilas escuro
-berinjela
-mocassim
-zircônia
-grafite escuro
-grafite claro
-marinho claro
-marinho escuro
-abobora
-azul abismo
-blue
-black
-sand
-silver
-gold
-sun
-ivory
-espresso
-wine
-cream
-coffee
-peach
-apricot
-ice
-deep blue
-cobalto
-titanio
-aurora
-rubra
-preto fosil
-branco fosil
-preto fosco
-branco fosco
-bege fosco
-mostarda fosco
-pink neon
-roho neon
-lilas neon
-azul neon
-verde neon
-laranja neon
-amarelo neon
-limao neon
-carvao
-perola
-glitter
-metalizado
-verniz
-pelucia
-animal print
-onca
+zirconia
 zebra
-leopardo
-tigre
-cobra
-python
-crocodilo
-lagarto
-jacare
-estampa
-xadrez
+xadrez windowpane
 xadrez vichy
+xadrez principe
+xadrez pied de poule
+xadrez madras
+xadrez houndstooth
+xadrez gales
 xadrez escoces
 xadrez classico
-xadrez pied de poule
-xadrez principe
-xadrez gales
-xadrez madras
-xadrez windowpane
-xadrez houndstooth
-poa
-bolinha
-floral
-animal
-paisley
-militar
-camuflado
-militar verde
-militar bege
-militar cinza
-marrom militar
-camuflagem
-rosa antigo
-rosa bebe
+xadrez
+wine
+vinho
+verniz
+vermelho
+verde neon
+verde limao
+verde grama
+verde floresta
+verde escuro
+verde claro
+verde bandeira
+verde alface
+verde agua
+verde
+uva
+turquesa
+turmalina
+trigo
+topazio
+titanio
+tijolo
+tigre
+tiffany
+terracota
+taupe
+tabaco
+sun
+silver
+siena
+sand
+salmao
+safira
+rubra
+royal
+roxo
 rosa pastel
 rosa choque
-cinza azulado
-azul cinza
-marrom tabaco
-tabaco
-cappuccino
-nutella
-canela
-trigo
-acqua blue
-carmesim
-escarlate
-bordo
-granada
-mostarda amarela
+rosa bebe
+rosa antigo
+rosa
+rojo
+roho neon
+quartzo rosa
+quartzo
+python
+preto fosil
+preto fosco
+preto
+prata
+poa
+plata
+pink neon
+pink
 petroleo azul
+petroleo
+pessego
+perola
+pelucia
+peach
+pastel
+palha
+paisley
+ouro velho
+ouro
+oro
+onca
+oliva
+off white
+ocre
+oceano
+nutella
+nude
+neve
+neon
+negro
+natural
+naranja
+musgo
+mostarda fosco
+mostarda amarela
+mostarda
+mocassim
+mint
+militar verde
+militar cinza
+militar bege
+militar
+metalizado
+menta
+mel
+marrom tabaco
+marrom militar
+marrom escuro
+marrom claro
+marrom
+marino
+marinho escuro
+marinho claro
+marinho
+marfim
 mango
-havana
+malva escuro
+malva
+limao neon
+limao
+lilas neon
+lilas escuro
+lilas claro
+lilas
+lila
+leopardo
+lavanda
+laranja neon
+laranja
+lapis
+lagarto
 kiwi
-aloe
+jeans
+jade
+jacare
+ivory
+ice
+havana
+gris oscuro
+gris claro
+granada
+grafito
+grafite escuro
+grafite claro
+grafite
+gold
+glitter
+fucsia
+framboesa
+floral
+fendi
+estampa
+espresso
+esmeralda
+escarlate
+dourado
+deep blue
+crocodilo
+cream
+coral
+coffee
+cobreado
+cobre
+cobra
+cobalto
+cinza escuro
+cinza claro
+cinza azulado
+cinza
+chumbo
+champagne
+cereza
+ceramica
+celeste
+castanho
+carvao
+carmesim
+caramelo
+caqui
+cappuccino
+canela
+camurca
+camuflagem
+camuflado
+camel
+cafe
+bronze
+branco gelo
+branco fosil
+branco fosco
+branco
+bordo
+bolinha
+blue
+blanco
+black
+berinjela
+bege fosco
+bege
 azul sky
-tiffany
+azul royal
+azul piscina
+azul neon
+azul marinho
+azul m
+azul jeans
+azul escuro
+azul claro
+azul cinza
+azul abismo
+azul
+avela
+aurora
+areia
+apricot
+anis
+animal print
+animal
+ametista
+amendoa
+amarillo
+amarelo neon
+amarelo
+aloe
+acqua blue
+abobora
