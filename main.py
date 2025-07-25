@@ -123,7 +123,7 @@ with col_a:
 with col_b:
     invoice_em_dolar = st.checkbox("Invoice em dólar")
 with col_c:
-    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=True)
+    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=False)
 with col_d:
     cotacao_manual = st.number_input("Cotação manual (opcional)", value=0.0, format="%.4f")
 
