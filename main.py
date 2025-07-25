@@ -8,9 +8,29 @@ import io
 import requests
 from datetime import datetime, timedelta
 from utils import parser_xml, parser_invoice, comparador
-import numpy as np
+import openpyxl
+from openpyxl.styles import PatternFill
 
 st.title("📦 Confronto de XML da NF-e com Invoice (CI)")
+
+# ---- Função para destacar duplicados no Excel (versão manual, qualquer openpyxl) ----
+def destacar_duplicados_manual(buffer, colunas_destacar=[2, 8], cor_hex="FFFF00"):
+    wb = openpyxl.load_workbook(buffer)
+    ws = wb.active
+
+    for col in colunas_destacar:
+        col_letter = openpyxl.utils.get_column_letter(col)
+        # Pega todos os valores da coluna, desconsiderando o cabeçalho
+        valores = [ws[f"{col_letter}{row}"].value for row in range(2, ws.max_row + 1)]
+        duplicados = set([v for v in valores if valores.count(v) > 1 and v is not None])
+        for row in range(2, ws.max_row + 1):
+            cell = ws[f"{col_letter}{row}"]
+            if cell.value in duplicados:
+                cell.fill = PatternFill(start_color=cor_hex, end_color=cor_hex, fill_type="solid")
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output
 
 # ---- Box da cotação do dólar no topo direito ----
 def get_cotacao_usd():
@@ -103,7 +123,7 @@ with col_a:
 with col_b:
     invoice_em_dolar = st.checkbox("Invoice em dólar")
 with col_c:
-    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=False)
+    usar_cotacao_auto = st.checkbox("Usar cotação automática (dia anterior)", value=True)
 with col_d:
     cotacao_manual = st.number_input("Cotação manual (opcional)", value=0.0, format="%.4f")
 
@@ -216,8 +236,10 @@ if xml_file and invoice_file:
             buffer = io.BytesIO()
             erros.to_excel(buffer, index=False)
             buffer.seek(0)
+            # Aplica destaque de duplicados manualmente em ref xml (B) e cor xml (H)
+            buffer = destacar_duplicados_manual(buffer, colunas_destacar=[2, 8])
             st.download_button(
-                label="📥 Baixar Erros em Excel",
+                label="📥 Baixar Erros em Excel (com duplicados destacados)",
                 data=buffer,
                 file_name="erros_confronto.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
