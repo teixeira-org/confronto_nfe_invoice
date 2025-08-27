@@ -58,6 +58,7 @@ python
 preto fosil
 preto fosco
 preto
+preta
 prata
 poa
 plata
@@ -128,6 +129,7 @@ lilas claro
 lilas
 lila
 leopardo
+latex
 lavanda
 laranja neon
 laranja
@@ -146,6 +148,7 @@ granada
 grafito
 grafite escuro
 grafite claro
+graffite
 grafite
 gold
 glitter
