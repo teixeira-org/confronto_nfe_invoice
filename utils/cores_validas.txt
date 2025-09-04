@@ -1,4 +1,4 @@
-zirconia
+zircônia
 zebra
 xadrez windowpane
 xadrez vichy
@@ -24,7 +24,6 @@ verde bandeira
 verde alface
 verde agua
 verde
-uva
 turquesa
 turmalina
 trigo
@@ -45,12 +44,13 @@ safira
 rubra
 royal
 roxo
+rose
 rosa pastel
 rosa choque
 rosa bebe
+rosa bb
 rosa antigo
 rosa
-rojo
 roho neon
 quartzo rosa
 quartzo
@@ -58,10 +58,8 @@ python
 preto fosil
 preto fosco
 preto
-preta
 prata
 poa
-plata
 pink neon
 pink
 petroleo azul
@@ -69,14 +67,12 @@ petroleo
 pessego
 perola
 pelucia
-pele
 peach
 pastel
 palha
 paisley
 ouro velho
 ouro
-oro
 onca
 oliva
 off white
@@ -84,12 +80,9 @@ ocre
 oceano
 nutella
 nude
-np antique 
 neve
 neon
-negro
 natural
-naranja
 musgo
 mostarda fosco
 mostarda amarela
@@ -100,6 +93,7 @@ militar verde
 militar cinza
 militar bege
 militar
+metalizado
 menta
 mel
 marrom tabaco
@@ -115,21 +109,13 @@ marfim
 mango
 malva escuro
 malva
-malbec 
-malbec 
-malbec 
-malbec 
-malbec 
-malbec 
 limao neon
 limao
 lilas neon
 lilas escuro
 lilas claro
 lilas
-lila
 leopardo
-latex
 lavanda
 laranja neon
 laranja
@@ -142,26 +128,15 @@ jacare
 ivory
 ice
 havana
-gris oscuro
-gris claro
 granada
-grafito
 grafite escuro
 grafite claro
-graffite
 grafite
 gold
 glitter
 fucsia
 framboesa
 floral
-fl pele
-fl malbec 
-fl malbec 
-fl malbec 
-fl malbec 
-fl malbec 
-fl malbec 
 fendi
 estampa
 espresso
@@ -183,9 +158,7 @@ cinza azulado
 cinza
 chumbo
 champagne
-cereza
 ceramica
-celeste
 castanho
 carvao
 carmesim
@@ -203,6 +176,7 @@ branco gelo
 branco fosil
 branco fosco
 branco
+bordô
 bordo
 bolinha
 blue
@@ -216,7 +190,6 @@ azul royal
 azul piscina
 azul neon
 azul marinho
-azul m
 azul jeans
 azul escuro
 azul claro
@@ -225,15 +198,14 @@ azul abismo
 azul
 avela
 aurora
+arena
 areia
 apricot
-antique  
 anis
 animal print
 animal
 ametista
 amendoa
-amarillo
 amarelo neon
 amarelo
 aloe
