@@ -12,6 +12,7 @@ xadrez classico
 xadrez
 wine
 vinho
+violeta
 verniz
 vermelho
 verde neon
@@ -51,6 +52,7 @@ rosa bebe
 rosa bb
 rosa antigo
 rosa
+rojo
 roho neon
 quartzo rosa
 quartzo
