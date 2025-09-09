@@ -75,6 +75,8 @@ palha
 paisley
 ouro velho
 ouro
+oro light
+oro
 onca
 oliva
 off white
@@ -84,11 +86,14 @@ nutella
 nude
 neve
 neon
+negro
 natural
 musgo
 mostarda fosco
 mostarda amarela
 mostarda
+mousse
+mocha
 mocassim
 mint
 militar verde
@@ -173,6 +178,7 @@ camuflado
 camel
 cafe
 bronze
+bronce
 branco gelo
 branco fosil
 branco fosco
@@ -210,5 +216,6 @@ amendoa
 amarelo neon
 amarelo
 aloe
+almendra
 acqua blue
 abobora
